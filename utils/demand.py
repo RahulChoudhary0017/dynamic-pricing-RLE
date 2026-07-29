@@ -1,34 +1,38 @@
 import random
 
+# Price Levels
 PRICE_MAP = {
-    0: 3000,
-    1: 3500,
-    2: 4000,
-    3: 4500,
+    0: 1000,
+    1: 2000,
+    2: 3000,
+    3: 4000,
     4: 5000
 }
 
+def customer_demand(price_level, days_left):
 
-def customer_demand(action, days_left):
-    """
-    Simulate customer demand based on price and remaining days.
-    """
+    # Base demand according to price
+    if price_level == 0:
+        demand = 15
+    elif price_level == 1:
+        demand = 12
+    elif price_level == 2:
+        demand = 10
+    elif price_level == 3:
+        demand = 7
+    else:
+        demand = 4
 
-    base_demand = {
-        0: 10,
-        1: 8,
-        2: 6,
-        3: 4,
-        4: 2
-    }
-
-    demand = base_demand[action]
-
-    # Last 5 days → demand increases
+    # Last-minute bookings
     if days_left <= 5:
-        demand += 2
+        demand += random.randint(3, 7)
 
-    # Random variation
-    demand += random.randint(-2, 2)
+    # Early booking period
+    elif days_left >= 20:
+        demand += random.randint(-2, 2)
+
+    # Normal booking period
+    else:
+        demand += random.randint(-1, 3)
 
     return max(0, demand)

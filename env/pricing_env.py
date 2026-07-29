@@ -49,29 +49,50 @@ class PricingEnvironment(gym.Env):
 
     def step(self, action):
 
-        price = PRICE_MAP[action]
+     price = PRICE_MAP[action]
 
-        sold_rooms = customer_demand(action, self.days_left)
+     # Customer Demand
+     sold_rooms = customer_demand(action, self.days_left)
+     sold_rooms = min(sold_rooms, self.inventory)
 
-        sold_rooms = min(sold_rooms, self.inventory)
+     # Update Inventory
+     self.inventory -= sold_rooms
 
-        self.inventory -= sold_rooms
+     # Revenue
+     revenue = sold_rooms * price
 
-        reward = sold_rooms * price
+     reward = revenue
 
-        self.days_left -= 1
+     # -----------------------------
+     # Reward Engineering
+     # -----------------------------
 
-        done = False
+     # Bonus if all inventory sold
+     if self.inventory == 0:
+        reward += 5000
 
-        if self.inventory == 0 or self.days_left == 0:
-         done = True
+     # Penalty if inventory remains at season end
+     if self.days_left == 1 and self.inventory > 0:
+        reward -= self.inventory * 500
 
-        state = np.array(
+     # Small penalty for keeping price too high
+     if action == 4 and sold_rooms <= 2:
+        reward -= 1000
+
+     # Move to next day
+     self.days_left -= 1
+
+     done = False
+
+     if self.inventory == 0 or self.days_left == 0:
+        done = True
+
+     state = np.array(
         [self.inventory, self.days_left],
         dtype=np.int32
-       )
+    )
 
-        return state, reward, done, False, {}
+     return state, reward, done, False, {}
 
     def render(self):
 
