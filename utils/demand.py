@@ -23,15 +23,34 @@ def customer_demand(price_level, days_left):
     else:
         demand = 4
 
-    # Last-minute bookings
+    # ----------------------------
+    # Peak Season
+    # ----------------------------
+    if 10 <= days_left <= 20:
+        demand += 5
+
+    # ----------------------------
+    # Weekend Rush
+    # Every 7th day
+    # ----------------------------
+    if days_left % 7 == 0:
+        demand += 3
+
+    # ----------------------------
+    # Last Minute Booking
+    # ----------------------------
     if days_left <= 5:
         demand += random.randint(3, 7)
 
-    # Early booking period
+    # ----------------------------
+    # Early Booking
+    # ----------------------------
     elif days_left >= 20:
         demand += random.randint(-2, 2)
 
-    # Normal booking period
+    # ----------------------------
+    # Normal Days
+    # ----------------------------
     else:
         demand += random.randint(-1, 3)
 

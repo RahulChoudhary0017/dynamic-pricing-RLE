@@ -10,14 +10,12 @@ class QLearningAgent:
     def __init__(self):
 
         # Learning Parameters
-        self.learning_rate = 0.1
-        self.discount_factor = 0.95
+        self.learning_rate = 0.2
+        self.discount_factor = 0.99
 
-        # Exploration Parameters
         self.epsilon = 1.0
-        self.epsilon_decay = 0.995
-        self.min_epsilon = 0.01
-
+        self.epsilon_decay = 0.998
+        self.min_epsilon = 0.05
         # Q-Table
         self.q_table = {}
 

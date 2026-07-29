@@ -19,7 +19,9 @@ class PricingEnvironment(gym.Env):
 
         self.inventory = self.max_inventory
         self.days_left = self.max_days
-
+        
+        self.competitor_price = 3000
+         
         # Action Space (5 Price Levels)
         self.action_space = spaces.Discrete(5)
 
@@ -39,6 +41,7 @@ class PricingEnvironment(gym.Env):
 
         self.inventory = self.max_inventory
         self.days_left = self.max_days
+        self.competitor_price = 3000
 
         state = np.array(
             [self.inventory, self.days_left],
@@ -49,7 +52,13 @@ class PricingEnvironment(gym.Env):
 
     def step(self, action):
 
-     price = PRICE_MAP[action]
+     price = PRICE_MAP[action] 
+     
+     import random
+
+     self.competitor_price = random.choice(
+     [2000,2500,3000,3500,4000]
+    )
 
      # Customer Demand
      sold_rooms = customer_demand(action, self.days_left)
@@ -62,6 +71,15 @@ class PricingEnvironment(gym.Env):
      revenue = sold_rooms * price
 
      reward = revenue
+     # Competitor Pricing Effect
+
+     if price > self.competitor_price:
+
+       reward -= 2000
+
+     else:
+
+      reward += 1000
 
      # -----------------------------
      # Reward Engineering
@@ -69,11 +87,16 @@ class PricingEnvironment(gym.Env):
 
      # Bonus if all inventory sold
      if self.inventory == 0:
-        reward += 5000
+        reward += 3000
 
      # Penalty if inventory remains at season end
      if self.days_left == 1 and self.inventory > 0:
         reward -= self.inventory * 500
+     else:
+
+         if self.inventory < 20:
+
+               reward += 2000
 
      # Small penalty for keeping price too high
      if action == 4 and sold_rooms <= 2:

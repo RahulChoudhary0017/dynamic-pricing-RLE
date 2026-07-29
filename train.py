@@ -11,7 +11,7 @@ env = PricingEnvironment()
 
 agent = QLearningAgent()
 
-episodes = 1000
+episodes = 5000
 
 reward_history = []
 

@@ -20,7 +20,7 @@ fixed_total = 0
 random_total = 0
 qlearning_total = 0
 
-episodes = 100
+episodes = 1000
 
 # -------------------------
 # Fixed Pricing Strategy
