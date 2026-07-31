@@ -120,6 +120,11 @@ class PricingEnvironment(gym.Env):
      # Small penalty for keeping price too high
      if action == 4 and sold_rooms <= 2:
         reward -= 1000
+        
+     # -----------------------------------
+     # Inventory Pressure Reward
+     # -----------------------------------
+
 
      # Move to next day
      self.days_left -= 1

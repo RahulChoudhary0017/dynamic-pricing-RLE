@@ -29,5 +29,9 @@ def customer_demand(action, days_left, competitor_price):
     # Early booking
     elif days_left >= 20:
         demand += random.randint(-1, 2)
+        
+        # Season Ending Discount
+    if days_left <= 3:
+       demand += random.randint(2, 5)
 
     return max(0, demand)
