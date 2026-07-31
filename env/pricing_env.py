@@ -66,7 +66,11 @@ class PricingEnvironment(gym.Env):
      )
 
      # Customer Demand
-     sold_rooms = customer_demand(action, self.days_left)
+     sold_rooms = customer_demand(
+    action,
+    self.days_left,
+    self.competitor_price
+    )
      sold_rooms = min(sold_rooms, self.inventory)
 
      # Update Inventory
@@ -85,6 +89,16 @@ class PricingEnvironment(gym.Env):
      else:
 
       reward += 1000
+      
+      # Bonus if our price is better than competitor
+     if price < self.competitor_price:
+         reward += 3000
+
+     elif price == self.competitor_price:
+          reward += 1500
+
+     else:
+          reward -= 2000
 
      # -----------------------------
      # Reward Engineering

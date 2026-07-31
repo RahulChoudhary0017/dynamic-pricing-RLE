@@ -1,8 +1,8 @@
 Training Summary
 =========================
 
-Episodes : 1000
-Highest Reward : 389000
-Lowest Reward : 131000
-Average Reward : 270532.00
-Final Epsilon : 0.010
+Episodes : 5000
+Highest Reward : 417000
+Lowest Reward : 149000
+Average Reward : 286175.50
+Final Epsilon : 0.050

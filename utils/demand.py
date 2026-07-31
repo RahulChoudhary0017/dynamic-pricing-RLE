@@ -1,6 +1,5 @@
 import random
 
-# Price Levels
 PRICE_MAP = {
     0: 1000,
     1: 2000,
@@ -9,49 +8,26 @@ PRICE_MAP = {
     4: 5000
 }
 
-def customer_demand(price_level, days_left):
+def customer_demand(action, days_left, competitor_price):
 
-    # Base demand according to price
-    if price_level == 0:
-        demand = 15
-    elif price_level == 1:
-        demand = 12
-    elif price_level == 2:
-        demand = 10
-    elif price_level == 3:
-        demand = 7
+    our_price = PRICE_MAP[action]
+
+    # Base demand
+    if our_price < competitor_price:
+        demand = random.randint(12, 16)
+
+    elif our_price == competitor_price:
+        demand = random.randint(8, 12)
+
     else:
-        demand = 4
+        demand = random.randint(4, 8)
 
-    # ----------------------------
-    # Peak Season
-    # ----------------------------
-    if 10 <= days_left <= 20:
-        demand += 5
-
-    # ----------------------------
-    # Weekend Rush
-    # Every 7th day
-    # ----------------------------
-    if days_left % 7 == 0:
-        demand += 3
-
-    # ----------------------------
-    # Last Minute Booking
-    # ----------------------------
+    # Last-minute bookings
     if days_left <= 5:
-        demand += random.randint(3, 7)
+        demand += random.randint(3, 6)
 
-    # ----------------------------
-    # Early Booking
-    # ----------------------------
+    # Early booking
     elif days_left >= 20:
-        demand += random.randint(-2, 2)
-
-    # ----------------------------
-    # Normal Days
-    # ----------------------------
-    else:
-        demand += random.randint(-1, 3)
+        demand += random.randint(-1, 2)
 
     return max(0, demand)
