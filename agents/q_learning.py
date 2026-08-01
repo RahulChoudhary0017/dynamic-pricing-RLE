@@ -9,16 +9,15 @@ class QLearningAgent:
 
     def __init__(self):
 
-        # Learning Parameters
-        self.learning_rate = 0.2
-        self.discount_factor = 0.99
+       self.learning_rate = 0.1
+       self.discount_factor = 0.95
 
-        self.epsilon = 1.0
-        self.epsilon_decay = 0.998
-        self.min_epsilon = 0.05
-        # Q-Table
-        self.q_table = {}
+       self.epsilon = 1.0
+       self.epsilon_decay = 0.995
+       self.min_epsilon = 0.01
 
+       self.q_table = {}
+       
     def choose_action(self, state, action_space):
         """
         Choose Action using Epsilon-Greedy Policy
