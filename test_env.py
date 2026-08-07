@@ -4,17 +4,30 @@ env = PricingEnvironment()
 
 state, _ = env.reset()
 
-done = False
+print("\n========== INITIAL STATE ==========")
+print("State :", state)
+print("Season:", env.season)
+print("===================================")
 
-while not done:
+for i in range(5):
 
     action = env.action_space.sample()
 
     state, reward, done, _, _ = env.step(action)
 
-    print("=" * 40)
-    print("Action :", action)
-    print("State  :", state)
-    print("Reward :", reward)
+    print("\n-----------------------------------")
+    print("Day              :", i + 1)
+    print("Action           :", action)
+    print("State            :", state)
+    print("Inventory        :", state[0])
+    print("Days Left        :", state[1])
+    print("Competitor Price :", state[2])
+    print("Season ID        :", state[3])
+    print("Season           :", env.season)
+    print("Reward           :", reward)
+    print("-----------------------------------")
 
-    env.render()
+    if done:
+        break
+
+print("\n========== TEST COMPLETED ==========")

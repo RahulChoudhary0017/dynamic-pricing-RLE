@@ -33,7 +33,8 @@ for episode in range(episodes):
             state,
             action,
             reward,
-            next_state
+            next_state,
+            done,
         )
 
         state = next_state

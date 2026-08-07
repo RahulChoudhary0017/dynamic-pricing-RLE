@@ -4,158 +4,275 @@ import numpy as np
 
 from utils.demand import customer_demand, PRICE_MAP
 
+
 class PricingEnvironment(gym.Env):
     """
     Custom Gymnasium Environment
-    for Dynamic Pricing
+    for Dynamic Pricing with Season Awareness
     """
 
     def __init__(self):
         super().__init__()
 
+        # -----------------------------
         # Initial Settings
+        # -----------------------------
         self.max_inventory = 100
         self.max_days = 30
 
         self.inventory = self.max_inventory
         self.days_left = self.max_days
-        
+
         self.competitor_price = 3000
-         
-        # Action Space (5 Price Levels)
+
+        # Booking Season
+        self.season = "Normal"
+        self.season_id = 1
+
+        # -----------------------------
+        # Action Space
+        # -----------------------------
+        # 0 = 1000
+        # 1 = 2000
+        # 2 = 3000
+        # 3 = 4000
+        # 4 = 5000
         self.action_space = spaces.Discrete(5)
 
+        # -----------------------------
         # Observation Space
-        # State = [Remaining Inventory, Days Left]
+        # -----------------------------
+        # State:
+        # [Inventory, Days Left, Competitor Price, Season]
+        #
+        # Season:
+        # 0 = Low
+        # 1 = Normal
+        # 2 = High
+
         self.observation_space = spaces.Box(
-            low=np.array([0, 0, 0]),
-            high=np.array([100, 30, 2]),
+            low=np.array([0, 0, 2500, 0]),
+            high=np.array([100, 30, 4500, 2]),
             dtype=np.int32
         )
+
+    # =====================================================
+    # RESET
+    # =====================================================
 
     def reset(self, seed=None, options=None):
         """
         Reset Environment
         """
+
         super().reset(seed=seed)
 
+        # Reset inventory and time
         self.inventory = self.max_inventory
         self.days_left = self.max_days
+
+        # Random competitor price
         self.competitor_price = np.random.randint(2500, 4501)
 
+        # -----------------------------
+        # Select Booking Season
+        # -----------------------------
+
+        import random
+
+        self.season = random.choice([
+            "Low",
+            "Normal",
+            "High"
+        ])
+
+        # Convert season into numeric ID
+        season_map = {
+            "Low": 0,
+            "Normal": 1,
+            "High": 2
+        }
+
+        self.season_id = season_map[self.season]
+
+        # -----------------------------
+        # Initial State
+        # -----------------------------
+
         state = np.array(
-            [self.inventory, self.days_left],
+            [
+                self.inventory,
+                self.days_left,
+                self.competitor_price,
+                self.season_id
+            ],
             dtype=np.int32
         )
 
         return state, {}
 
+    # =====================================================
+    # STEP
+    # =====================================================
+
     def step(self, action):
 
-     price = PRICE_MAP[action] 
-       # Competitor price changes every day
-     self.competitor_price += np.random.randint(-100, 101)
+        # -----------------------------
+        # Selected Price
+        # -----------------------------
 
-       # Keep competitor price in range
-     self.competitor_price = int(
-         np.clip(
-             self.competitor_price,
-             2500,
-             4500
-         )
-     )
+        price = PRICE_MAP[action]
 
-     # Customer Demand
-     sold_rooms = customer_demand(
-    action,
-    self.days_left,
-    self.competitor_price
-    )
-     sold_rooms = min(sold_rooms, self.inventory)
+        # -----------------------------
+        # Competitor Price Changes
+        # -----------------------------
 
-     # Update Inventory
-     self.inventory -= sold_rooms
+        self.competitor_price += np.random.randint(-100, 101)
 
-     # Revenue
-     revenue = sold_rooms * price
+        # Keep competitor price between 2500 and 4500
+        self.competitor_price = int(
+            np.clip(
+                self.competitor_price,
+                2500,
+                4500
+            )
+        )
 
-     reward = revenue
-     # Competitor Pricing Effect
+        # -----------------------------
+        # Customer Demand
+        # -----------------------------
 
-     if price > self.competitor_price:
+        sold_rooms = customer_demand(
+            action,
+            self.days_left,
+            self.competitor_price,
+            self.season
+        )
 
-       reward -= 2000
+        # Cannot sell more rooms than available
+        sold_rooms = min(
+            sold_rooms,
+            self.inventory
+        )
 
-     else:
+        # -----------------------------
+        # Update Inventory
+        # -----------------------------
 
-      reward += 1000
-      
-      # Bonus if our price is better than competitor
-     if price < self.competitor_price:
-         reward += 3000
+        self.inventory -= sold_rooms
 
-     elif price == self.competitor_price:
-          reward += 1500
+        # -----------------------------
+        # Revenue
+        # -----------------------------
 
-     else:
-          reward -= 2000
+        revenue = sold_rooms * price
 
-     # -----------------------------
-     # Reward Engineering
-     # -----------------------------
+        reward = revenue
 
-     # Bonus if all inventory sold
-     if self.inventory == 0:
-        reward += 3000
+        # -----------------------------
+        # Competitor Pricing Effect
+        # -----------------------------
 
-     # Penalty if inventory remains at season end
-     if self.days_left == 1 and self.inventory > 0:
-        reward -= self.inventory * 500
-     else:
+        if price > self.competitor_price:
 
-         if self.inventory < 20:
+            reward -= 2000
 
-               reward += 2000
+        else:
 
-     # Small penalty for keeping price too high
-     if action == 4 and sold_rooms <= 2:
-        reward -= 1000
-        
-     # -----------------------------------
-     # Inventory Pressure Reward
-     # -----------------------------------
+            reward += 1000
 
+        # -----------------------------
+        # Price Advantage Reward
+        # -----------------------------
 
-     # Move to next day
-     self.days_left -= 1
+        if price < self.competitor_price:
 
-     done = False
+            reward += 3000
 
-     if self.inventory == 0 or self.days_left == 0:
-        done = True
+        elif price == self.competitor_price:
 
-     if self.competitor_price < 2800:
-        competitor_level = 0      # Low
-     elif self.competitor_price < 3600:
-        competitor_level = 1      # Medium
-     else:
-         competitor_level = 2      # High
+            reward += 1500
 
-     state = np.array(
-    [
-        self.inventory,
-        self.days_left,
-        competitor_level
-    ],
-    dtype=np.int32
-)
+        else:
 
+            reward -= 2000
 
-     return state, reward, done, False, {}
+        # -----------------------------
+        # Reward Engineering
+        # -----------------------------
+
+        # Bonus if all inventory is sold
+        if self.inventory == 0:
+
+            reward += 3000
+
+        # Penalty if inventory remains near season end
+        if self.days_left == 1 and self.inventory > 0:
+
+            reward -= self.inventory * 500
+
+        else:
+
+            # Bonus when inventory becomes low
+            if self.inventory < 20:
+
+                reward += 2000
+
+        # -----------------------------
+        # High Price Penalty
+        # -----------------------------
+
+        if action == 4 and sold_rooms <= 2:
+
+            reward -= 1000
+
+        # -----------------------------
+        # Inventory Pressure Reward
+        # -----------------------------
+
+        # Reserved for future optimization
+
+        # -----------------------------
+        # Move to Next Day
+        # -----------------------------
+
+        self.days_left -= 1
+
+        # -----------------------------
+        # Episode Completion
+        # -----------------------------
+
+        done = False
+
+        if self.inventory == 0 or self.days_left == 0:
+
+            done = True
+
+        # -----------------------------
+        # Current State
+        # -----------------------------
+
+        state = np.array(
+            [
+                self.inventory,
+                self.days_left,
+                self.competitor_price,
+                self.season_id
+            ],
+            dtype=np.int32
+        )
+
+        return state, reward, done, False, {}
+
+    # =====================================================
+    # RENDER
+    # =====================================================
 
     def render(self):
 
         print("-------------------------")
         print(f"Inventory : {self.inventory}")
         print(f"Days Left : {self.days_left}")
+        print(f"Season    : {self.season}")
+        print(f"Competitor Price : {self.competitor_price}")
         print("-------------------------")

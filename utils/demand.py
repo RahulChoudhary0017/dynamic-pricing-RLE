@@ -8,7 +8,7 @@ PRICE_MAP = {
     4: 5000
 }
 
-def customer_demand(action, days_left, competitor_price):
+def customer_demand(action, days_left, competitor_price, season):
 
     our_price = PRICE_MAP[action]
 
@@ -32,6 +32,18 @@ def customer_demand(action, days_left, competitor_price):
         
         # Season Ending Discount
     if days_left <= 3:
-       demand += random.randint(2, 5)
+       demand += random.randint(2, 5) 
+       
+       
+       # -----------------------------
+       # Season Effect
+       # -----------------------------
+    if season == "High":
+       demand += random.randint(4, 7)
+
+    elif season == "Low":
+       demand -= random.randint(2, 4)
+
+       # Normal season -> no change
 
     return max(0, demand)
